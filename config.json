@@ -1,0 +1,7 @@
+{
+    "clientid": "yourclientid",
+    "clientsecret": "yourclientsecret",
+    "callbackurl": "http://localhost:3000/auth/discord/callback",
+    "secret": "SuperSecureSecret123",
+    "port" : 3000
+}

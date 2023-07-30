@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Todo App | Not Logged in</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-800 text-white py-10 px-5">
+  <h1 class="text-4xl mb-10 text-center">Todo App</h1>
+
+    <button onclick="openModal()" class="mb-5 px-3 py-2 bg-blue-500 text-white rounded">+</button>
+
+    <table id="todo-list" class="table-auto w-full bg-blend-darken">
+        <thead>
+            <tr>
+                <th class="px-4 py-2">Title</th>
+                <th class="px-4 py-2">Description</th>
+                <th class="px-4 py-2">Due Date</th>
+                <th class="px-4 py-2">Priority</th>
+                <th class="px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="add-todo-modal" class="fixed top-0 left-0 w-full h-full flex items-center justify-center add-todo-modal bg-gray-900">
+           <button type="button" onclick="window.location.href = `/auth/discord`" class="px-3 py-2 bg-blue-500 text-white rounded">Login with Discord!</button>
+    </div>
+
+    <script src="todo.js"></script>
+    <script>
+        function openModal() {
+            document.getElementById('add-todo-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('add-todo-modal').style.display = 'none';
+        }
+
+        function loadTodos() {
+            fetch('/api/todos')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('todo-list').querySelector('tbody');
+                    list.innerHTML = '';
+                    const sortedTodos = Object.values(data).sort((a, b) => {
+                        const dateComparison = new Date(a.dueDate) - new Date(b.dueDate);
+                        if (dateComparison !== 0) return dateComparison;
+                        const priorityOrder = ['Now!', 'High', 'Medium', 'Low', 'Lowest'];
+                        return priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+                    });
+                    for (const todo of sortedTodos) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="border px-4 py-2">${todo.title}</td>
+                            <td class="border px-4 py-2">${todo.description}</td>
+                            <td class="border px-4 py-2">${todo.dueDate}</td>
+                            <td class="border px-4 py-2">${todo.priority}</td>
+                            <td class="border px-4 py-2">
+                                <button class="px-3 py-2 bg-blue-500 text-white rounded" onclick="openModal()">Log In</button>
+                            </td>
+                        `;
+                        list.appendChild(row);
+                    }
+                });
+        }
+
+        // Call loadTodos() after the user has logged in
+        
+            loadTodos();
+        
+    </script>
+    <style>
+        .add-todo-modal {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            display: none;
+        }
+    </style>
+</body>
+</html>

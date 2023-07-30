@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Todo App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-800 text-white py-10 px-5">
+  <h1 class="text-4xl mb-10 text-center">Todo App</h1>
+
+  <div class="flex justify-between items-center">
+    <button onclick="openModal()" class="mb-5 px-3 py-2 bg-blue-500 text-white rounded">+</button>
+    <button onclick="location.href='/logout'" class="mb-5 px-3 py-2 bg-red-500 text-white rounded">Logout</button>
+  </div>
+    <table id="todo-list" class="table-auto w-full bg-blend-darken">
+        <thead>
+            <tr>
+                <th class="px-4 py-2">Title</th>
+                <th class="px-4 py-2">Description</th>
+                <th class="px-4 py-2">Due Date</th>
+                <th class="px-4 py-2">Priority</th>
+                <th class="px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="add-todo-modal" class="fixed top-0 left-0 w-full h-full flex items-center justify-center add-todo-modal bg-gray-900">
+             <form id="add-todo-form" class="bg-white text-black p-10 rounded">
+            <label for="todo-due-date">Due Date</label>
+            <input type="date" id="todo-due-date" class="px-3 py-2 border rounded mb-2 w-full">
+        
+            <label for="todo-title">Title</label>
+            <input type="text" id="todo-title" placeholder="Title" class="px-3 py-2 border rounded mb-2 w-full">
+        
+            <label for="todo-description">Description</label>
+            <input type="text" id="todo-description" placeholder="Description" class="px-3 py-2 border rounded mb-2 w-full">
+        
+            <label for="todo-priority">Priority</label>
+            <select id="todo-priority" class="px-3 py-2 border rounded mb-2 w-full">
+                <option value="Now!">Now!</option>
+                <option value="High">High</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Low">Low</option>
+                <option value="Lowest">Lowest</option>
+            </select>
+            <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded">Add Todo</button>
+            <button type="button" onclick="closeModal()" class="px-3 py-2 bg-red-500 text-white rounded">Close</button>
+        </form>
+    </div>
+
+</body>
+</html>
+
+
+    <script>
+        function openModal() {
+    document.getElementById('add-todo-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('add-todo-modal').style.display = 'none';
+}
+
+document.getElementById('add-todo-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const dueDate = document.getElementById('todo-due-date').value;
+    const title = document.getElementById('todo-title').value;
+    const description = document.getElementById('todo-description').value;
+    const priority = document.getElementById('todo-priority').value;
+    fetch('/api/todo', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ dueDate, title, description, priority }),
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);
+        loadTodos();
+        closeModal();
+    });
+});
+
+document.getElementById('todo-due-date').min = new Date().toISOString().split('T')[0];
+
+       
+
+        function loadTodos() {
+    fetch('/api/todos')
+    .then(response => response.json())
+    .then(data => {
+        const list = document.getElementById('todo-list').querySelector('tbody');
+        list.innerHTML = '';
+        const sortedTodos = Object.values(data).sort((a, b) => {
+            const dateComparison = new Date(a.dueDate) - new Date(b.dueDate);
+            if (dateComparison !== 0) return dateComparison;
+            const priorityOrder = ['Now!', 'High', 'Medium', 'Low', 'Lowest'];
+            return priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+        });
+        for (const todo of sortedTodos) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="border px-4 py-2">${todo.title}</td>
+                <td class="border px-4 py-2">${todo.description}</td>
+                <td class="border px-4 py-2">${todo.dueDate}</td>
+                <td class="border px-4 py-2">${todo.priority}</td>
+                <td class="border px-4 py-2">
+                    <button class="px-3 py-2 bg-red-500 text-white rounded" onclick="deleteTodo('${todo.id}')">Delete</button>
+                </td>
+            `;
+            list.appendChild(row);
+        }
+    });
+}
+
+function deleteTodo(id) {
+    fetch(`/api/todo/${id}`, {
+        method: 'DELETE',
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);
+        loadTodos();
+    });
+}
+
+loadTodos();
+    </script>
+<style>
+    .add-todo-modal {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    display: none;
+}
+</style>
+</html>
