@@ -74,7 +74,7 @@ passport.use(new DiscordStrategy({
     scope: ['identify', 'email']
   },
   function(accessToken, refreshToken, profile, cb) {
-    if (profile.id === '853265276015738890') {
+    if (profile.id === config.alloweduser) {
       return cb(null, profile);
     } else {
       return cb(null, false, { message: 'Not allowed' });
@@ -97,7 +97,7 @@ app.get('/auth/discord/callback',
 app.get('/', (req, res) => {
   if (!req.user) {
     res.redirect('/notloggedin');
-  } else if (req.user.id !== '853265276015738890') {
+  } else if (req.user.id !==  config.alloweduser) {
     res.redirect('/readonly');
   } else {
     res.sendFile (__dirname + '/index.html');
